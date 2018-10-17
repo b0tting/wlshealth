@@ -1,8 +1,6 @@
 <%@ page import="java.net.InetAddress" %>
 <%@ page import="java.io.File" %>
-<%@ page import="java.util.HashMap" %>
 <%@ page import="java.net.URL" %>
-<%@ page import="java.net.URLConnection" %>
 <%@ page import="java.net.HttpURLConnection" %>
 <%@ page import="java.util.Properties" %>
 <%@ page import="java.io.InputStream" %>
@@ -40,16 +38,12 @@
             if(prop.containsKey(hostname)) {
                 String urlString = prop.getProperty(hostname);
                 URL url = new URL(urlString);
-                System.out.println("Opening " + urlString);
                 HttpURLConnection conn = (HttpURLConnection)url.openConnection();
                 HttpURLConnection.setFollowRedirects(true);
                 conn.setRequestMethod("GET");
                 conn.setReadTimeout(8000);
                 result = conn.getResponseCode() == HttpURLConnection.HTTP_OK;
-                System.out.println("GOT RESULT " + conn.getResponseCode());
                 conn.disconnect();
-            } else {
-                System.out.println("Prop did not contain hostname " + hostname);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,16 +57,23 @@
     boolean clusterIsOkay = true;
     String hostname = InetAddress.getLocalHost().getHostName();
     String serverName = System.getProperty("weblogic.Name");
+
     // This has to be done to prevent the FrontEndHost from overwriting us
     String pageURL = "http://" + hostname + ":" + request.getServerPort() + request.getRequestURI();
     String requestParam = request.getParameter(LB_PARAMETER);
+
+    // By using the name of the server, we can run multiple checks on a single machine
     File stateFile = new File(serverName + ".state");
+
     ServletContext sc = config.getServletContext();
     if (requestParam != null) {
         if (requestParam.equals("enable") && stateFile.exists()) {
             stateFile.delete();
             sc.log(serverName + " no longer returns an error message for health checks and should be returned to the load balancer pool.");
         } else if (requestParam.equals("disable") && !stateFile.exists()) {
+
+            // The server list contains a map and URLs to check. The use case is when you have a two-server cluster and want to check
+            // the other server health state before allowing this one to result an error to the F5
             InputStream sis = config.getServletContext().getResourceAsStream("/WEB-INF/lib/serverlist.properties");
             Properties serverList = new Properties();
             serverList.load(sis);
@@ -87,7 +88,8 @@
     }
 
     if (stateFile.exists()) {
-        response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Load balancer, please do not send me messages");
+        String responseString = "Load balancer, please do not send me messages. Enable at " + pageURL + "?" + LB_PARAMETER + "=enable";
+        response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, responseString);
     }
 %>
 <html>
