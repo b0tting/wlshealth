@@ -1,4 +1,0 @@
-## I am not sure how to find other cluster members and prevent you from disabling a whole cluster
-## So please, add some. If the current host is in this list, it will fetch the HTTP code for
-## the given URL, which in theory should be another node.
-host1=http://host2:port/zzwlshealth/index.jsp
