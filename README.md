@@ -13,7 +13,7 @@
   This way, we can tell the load balancer an individual server is not available by calling the URL or placing the temp
   file ourselves. Just deploy the dist/zzwlshealth.war it to your WebLogic server and target the deployment to any managed server.  
   
-  ![Alt text](/stscreenshots/screenshot.png?raw=true "App screenshot")
+  ![Alt text](/screenshots/screenshot.png?raw=true "App screenshot")
   
    Relevant URLs:
   
