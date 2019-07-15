@@ -3,6 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
     <servlet>
         <servlet-name>htservlet</servlet-name>
         <servlet-class>nl.qualogy.com.HealthCheckServlet</servlet-class>
@@ -18,4 +22,9 @@
             <max-age>0</max-age>
         </cookie-config>
     </session-config>
+
+    <context-param>
+        <param-name>ignoreServers</param-name>
+        <param-value>AdminServer</param-value>
+    </context-param>
 </web-app>

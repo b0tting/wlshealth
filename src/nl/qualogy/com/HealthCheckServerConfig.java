@@ -9,7 +9,7 @@ import java.util.TreeMap;
 public class HealthCheckServerConfig {
     private TreeMap<String,String> attributes = new TreeMap<String, String>();
 
-    public HealthCheckServerConfig(String name, String host, Integer port, String baseURI) {
+    public HealthCheckServerConfig(String name, String host, Integer port, String baseURI, boolean ignored) {
         attributes.put("name", name);
         attributes.put("port", port.toString());
         attributes.put("host",host);
@@ -17,6 +17,7 @@ public class HealthCheckServerConfig {
         attributes.put("stateURL", getURLString(ZZHealthCheck.STATE_URI_PART));
         attributes.put("disableURL", getURLString(ZZHealthCheck.DISABLE_URI_PART));
         attributes.put("enableURL", getURLString(ZZHealthCheck.ENABLE_URI_PART));
+        attributes.put("ignored", ignored ? "1" : "0");
     }
 
     public String getAttribute(String key) {
@@ -29,31 +30,35 @@ public class HealthCheckServerConfig {
 
     public int getStatus() {
         int returnVal = ZZHealthCheck.STATE_UNKNOWN;
-        HttpURLConnection request = null;
-        try {
-            URL url = new URL(getURLString(ZZHealthCheck.LB_URI_PART));
-            request = (HttpURLConnection) url.openConnection();
+        if("1".equals(getAttribute("ignored"))) {
+            returnVal = ZZHealthCheck.STATE_ISIGNORED;
+        } else {
+            HttpURLConnection request = null;
+            try {
+                URL url = new URL(getURLString(ZZHealthCheck.LB_URI_PART));
+                request = (HttpURLConnection) url.openConnection();
 
-            // This should be configureable in the web.xml
-            request.setReadTimeout(5000);
-            request.setConnectTimeout(5000);
-            request.connect();
-            if (request.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                returnVal = ZZHealthCheck.STATE_LB_ENABLED;
-            } else if (request.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                returnVal = ZZHealthCheck.STATE_NO_CHECK;
-            } else if (request.getResponseCode() == HttpURLConnection.HTTP_UNAVAILABLE) {
-                returnVal = ZZHealthCheck.STATE_LB_DISABLED;
-            }
-        } catch (SocketTimeoutException e) {
-            returnVal = ZZHealthCheck.STATE_TIMEOUT;
-        } catch (IOException e) {
-            returnVal = ZZHealthCheck.STATE_NO_SERVER;
-        } catch (Exception e) {
-            returnVal = ZZHealthCheck.STATE_UNKNOWN;
-        } finally {
-            if(request != null) {
-                request.disconnect();
+                // This should be configureable in the web.xml
+                request.setReadTimeout(5000);
+                request.setConnectTimeout(5000);
+                request.connect();
+                if (request.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    returnVal = ZZHealthCheck.STATE_LB_ENABLED;
+                } else if (request.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    returnVal = ZZHealthCheck.STATE_NO_CHECK;
+                } else if (request.getResponseCode() == HttpURLConnection.HTTP_UNAVAILABLE) {
+                    returnVal = ZZHealthCheck.STATE_LB_DISABLED;
+                }
+            } catch (SocketTimeoutException e) {
+                returnVal = ZZHealthCheck.STATE_TIMEOUT;
+            } catch (IOException e) {
+                returnVal = ZZHealthCheck.STATE_NO_SERVER;
+            } catch (Exception e) {
+                returnVal = ZZHealthCheck.STATE_UNKNOWN;
+            } finally {
+                if (request != null) {
+                    request.disconnect();
+                }
             }
         }
         return returnVal;
@@ -66,6 +71,7 @@ public class HealthCheckServerConfig {
         for (Map.Entry<String, String> attribute : attributes.entrySet()) {
             appendToJSONSB(json, attribute.getKey(), attribute.getValue());
         }
+
         int state = getStatus();
         appendToJSONSB(json, "state", Integer.toString(state));
         appendToJSONSB(json, "statelabel", ZZHealthCheck.getStateLabel(state));

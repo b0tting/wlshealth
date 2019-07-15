@@ -40,6 +40,7 @@
     var STATE_NO_SERVER = "3";
     var STATE_UNKNOWN = "4";
     var STATE_TIMEOUT = "5";
+    var STATE_IGNORED = "6";
 
     var serversJson;
 
@@ -50,7 +51,8 @@
         "2": "This server is not running the load balancer health check",
         "3": "Server is not running",
         "4": "An unknown error occurred checking this server",
-        "5": "A timeout occurred checking this server"
+        "5": "A timeout occurred checking this server",
+        "6": "This server is not configured for use by the load balancer",
     }
 
     function drawServerCard(server) {
@@ -102,6 +104,7 @@
                         serverCard.removeClass("bg-success bg-light bg-warning text-white").addClass("bg-danger text-black");
                         serverButton.attr("disabled", true).text("Disabled");;
                         break;
+                    case STATE_IGNORED:
                     case STATE_NO_CHECK:
                         serverCard.removeClass("bg-success bg-danger bg-warning text-white").addClass("bg-light text-black");
                         serverButton.attr("disabled", true).text("Disabled");

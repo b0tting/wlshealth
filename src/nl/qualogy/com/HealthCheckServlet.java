@@ -16,7 +16,8 @@ public class HealthCheckServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if(zhc == null) {
-            zhc = new ZZHealthCheck(req.getContextPath() + req.getServletPath());
+            zhc = new ZZHealthCheck(req.getContextPath() + req.getServletPath(),
+                    getServletContext().getInitParameter("ignoreServers"));
         }
 
         //Actually, I can do this better, we know what machines are involved, we can do a
@@ -27,8 +28,9 @@ public class HealthCheckServlet extends HttpServlet {
         resp.addHeader("Access-Control-Max-Age", "1728000");
 
         String path = req.getPathInfo();
+        System.out.println("PATGH " + path);
         if(path == null) {
-            RequestDispatcher requestDispatcher = req.getRequestDispatcher("/health.jsp");
+            RequestDispatcher requestDispatcher = req.getRequestDispatcher("/index.html");
             requestDispatcher.forward(req, resp);
         } else if(path.equals(ZZHealthCheck.LB_URI_PART)) {
             if(zhc.getThisServerEnabled()) {

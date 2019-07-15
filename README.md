@@ -11,13 +11,13 @@
   - If an "enable" message is send, the file is removed and the OKAY page is displayed again
   
   This way, we can tell the load balancer an individual server is not available by calling the URL or placing the temp
-  file ourselves. Just deploy the dist/zzwlshealth.war it to your WebLogic server and target the deployment to any managed server.  
+  file ourselves. Just deploy the dist/zzwlshealth.war it to your WebLogic server and all instances (including the AdminServer). Stop and start load balancer checks using the /zzwlshealth/ URL on any instance, the AdminServer instance is probably the best choice.     
   
   ![Alt text](/screenshots/screenshot.png?raw=true "App screenshot")
   
    Relevant URLs:
   
-  - <server url>/zzwlshealth/health - the GUI page, showing the status of all servers
+  - <server url>/zzwlshealth/ - the GUI page, showing the status of all servers
   - <server url>/zzwlshealth/health/disable - tell the load balancer URL to return a HTTP 503
   - <server url>/zzwlshealth/health/enable - tell the load balancer URL to return a HTTP 200
   - <server url>/zzwlshealth/health/lb - the URL you will configure in your load balancer health check

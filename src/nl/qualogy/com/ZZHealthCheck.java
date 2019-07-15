@@ -18,6 +18,7 @@ public class ZZHealthCheck {
     public static final int STATE_NO_SERVER = 3;
     public static final int STATE_UNKNOWN = 4;
     public static final int STATE_TIMEOUT = 5;
+    public static final int STATE_ISIGNORED = 6;
 
 
     public static final String STATE_URI_PART = "/state";
@@ -25,8 +26,10 @@ public class ZZHealthCheck {
     public static final String DISABLE_URI_PART = "/disable";
     public static final String INFO_URI_PART = "/info";
     public static final String LB_URI_PART = "/lb";
+    private String ignoredServers;
 
-    public ZZHealthCheck(String baseURL) {
+    public ZZHealthCheck(String baseURL, String ignoreServers) {
+        this.ignoredServers = ignoreServers;
         this.baseURL = baseURL;
     }
 
@@ -41,6 +44,7 @@ public class ZZHealthCheck {
             case STATE_NO_SERVER: label = "server unavailable"; break;
             case STATE_UNKNOWN: label = "unknown state"; break;
             case STATE_TIMEOUT: label = "check timed out"; break;
+            case STATE_ISIGNORED: label = "server is ignored"; break;
         }
         return label;
     }
@@ -54,7 +58,7 @@ public class ZZHealthCheck {
                 String listenAddress = (String)mbServer.getAttribute(instance.getObjectName(), "ListenAddress");
                 String name = (String)mbServer.getAttribute(instance.getObjectName(), "Name");
                 Integer port = (Integer)mbServer.getAttribute(instance.getObjectName(), "ListenPort");
-                servers.put(name, new HealthCheckServerConfig(name, listenAddress, port, baseURL));
+                servers.put(name, new HealthCheckServerConfig(name, listenAddress, port, baseURL, ignoredServers.contains(name)));
             }
         } catch (Exception e) {
             e.printStackTrace();
